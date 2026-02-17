@@ -1,11 +1,16 @@
 import axios from "axios";
 import {  Request, Response } from "express";
+import { CurrentWeather, DailyForecast, WeatherAlert} from "../types/weather.types";
 
+const END_POINT = "https://api.openweathermap.org/data/3.0/onecall";
+const GEO_ZIP = "http://api.openweathermap.org/geo/1.0/zip";
+const GEO_CITY = 'http://api.openweathermap.org/geo/1.0/direct';
+const REVERSE_GEO = 'http://api.openweathermap.org/geo/1.0/reverse';
 
 // ----------------- Helper functions -----------------------
-const getCurrentWeather = async (lat: number, lon: number) => {
+const getWeatherData = async (lat: number, lon: number) => {
     try {
-        const weatherResponse = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
+        const weatherResponse = await axios.get(END_POINT, {
             params: {
                 lat: lat,
                 lon: lon,
@@ -13,51 +18,27 @@ const getCurrentWeather = async (lat: number, lon: number) => {
                 appid: process.env.OPENWEATHER_API_KEY
             }
         }); 
-        return {
-            city: weatherResponse.data.name,
-            temperature: weatherResponse.data.main.temp,
-            description: weatherResponse.data.weather[0].description,
-            humidity: weatherResponse.data.main.humidity,
-            windSpeed: weatherResponse.data.wind.speed
-        };      
+        return weatherResponse.data;  
+
     } catch (error) {
         throw error;
     }
-
-}
-
-const getForecastWeather = async (lat: number, lon: number) => {
-    try {
-        const weatherResponse = await axios.get('https://api.openweathermap.org/data/2.5/forecast', {
-            params: {
-                lat: lat,
-                lon: lon,
-                units: 'metric',
-                appid: process.env.OPENWEATHER_API_KEY
-            }
-        }); 
-        return weatherResponse.data;      
-    } catch (error) {
-        throw error;
-    }
-
 }
 
 const getCordinatesByCity = async (city: string) => {
     try {
-        const geoResponse = await axios.get('http://api.openweathermap.org/geo/1.0/direct', {
+        const geoResponse = await axios.get(GEO_CITY, {
             params: {
                 q: city,
                 limit: 1,
                 appid: process.env.OPENWEATHER_API_KEY
             }
         });
-
         if (geoResponse.data.length === 0) {
             throw new Error("city cordinates not found");
         }
-        const {lat, lon} = geoResponse.data[0];
-        return {lat, lon};
+        const {lat, lon, name, country} = geoResponse.data[0];
+        return {lat, lon, city: name, country};
 
     } catch (error) {
         throw error;
@@ -66,7 +47,7 @@ const getCordinatesByCity = async (city: string) => {
 
 const getCordinatesByZip = async (zip: string) => {
     try {
-        const geoResponse = await axios.get('http://api.openweathermap.org/geo/1.0/zip', {
+        const geoResponse = await axios.get(GEO_ZIP, {
             params: {
                 zip: zip,
                 appid: process.env.OPENWEATHER_API_KEY
@@ -76,128 +57,135 @@ const getCordinatesByZip = async (zip: string) => {
         if (geoResponse.data.length === 0) {
             throw new Error("city cordinates not found");
         }
-        const {lat, lon} = geoResponse.data;
-        return {lat, lon};
+        const {lat, lon, name, country} = geoResponse.data;
+        return {lat, lon, city: name, country};
 
     } catch (error) {
         throw error;
     }
 }
 
-// ----------------- Functions to get current weather -------------------
-
-export const getWeatherByCity = async (req: Request, res: Response) => {
-    const city = req.query.city as string;
-    if (!city) {
-        throw new Error("City is required");
-    }
-
+const getCityNameByCoords = async (lat: number, lon: number) => {
     try {
-        const coords = await getCordinatesByCity(city);
-        const weatherData = await getCurrentWeather(coords.lat, coords.lon);
+        const reverseGeoResponse = await axios.get(REVERSE_GEO, {
+            params: {
+                lat: lat,
+                lon: lon,
+                limit: 1,
+                appid: process.env.OPENWEATHER_API_KEY
+            }
+        });
 
-        res.json(weatherData);
+        if (reverseGeoResponse.data.length === 0) {
+            throw new Error("Location name not found for these coordinates");
+        }
+        const { name, country } = reverseGeoResponse.data[0]; 
+        return { city:name, country };
 
-    } catch (error :any ) {
-        const status = error.response ? error.response.status : 500;
-        const message = error.response ? error.response.data.message : "Internal Server Error";
-        
-        res.status(status).json({ error: message });
+    } catch (error) {
+        throw error;
     }
 };
 
-export const getWeatherByCoordinates = async (req: Request, res: Response) => {
-    const lat = req.query.lat;
-    const lon = req.query.lon;
-    if (!lat || !lon) {
-        throw new Error("Coordinates are required");
-    }
+const extractCurrentWeather = (data: any): CurrentWeather => {
+  const { current } = data;
+  const weather = current.weather; 
 
-    try {
-        const weatherData =  await getCurrentWeather(Number(lat), Number(lon));
-        res.json(weatherData);
-
-    } catch (error :any ) {
-        const status = error.response ? error.response.status : 500;
-        const message = error.response ? error.response.data.message : "Internal Server Error";
-        
-        res.status(status).json({ error: message });
-    }
+  return {
+    // dt: current.dt,
+    temp: current.temp,
+    feels_like: current.feels_like,
+    humidity: current.humidity,
+    uvi: current.uvi,
+    wind_speed: current.wind_speed,
+    visibility: current.visibility,
+    main: weather.main,
+    description: weather.description,
+    icon: weather.icon,
+  };
 };
 
-export const getWeatherByZip = async (req: Request, res: Response) => {
-    const zip = req.query.zip as string;
-    if (!zip) {
-        throw new Error("Zip code is required");
-    }
-
-    try {
-        const coords = await getCordinatesByZip(zip);
-        const weatherData = await getCurrentWeather(coords.lat, coords.lon);
-        res.json(weatherData);
-
-    } catch (error :any ) {
-        const status = error.response ? error.response.status : 500;
-        const message = error.response ? error.response.data.message : "Internal Server Error";
-        
-        res.status(status).json({ error: message });
-    }
+const extractDailyForecast = (data: any): DailyForecast[] => {
+  return data.daily.map((day: any) => {
+    const weather = day.weather;
+    
+    return {
+      dt: day.dt,
+      summary: day.summary,
+      temp_min: day.temp.min,
+      temp_max: day.temp.max,
+      main: weather.main,
+      description: weather.description,
+      icon: weather.icon,
+      pop: day.pop,
+      rain: day.rain,
+      wind_speed: day.wind_speed,
+      humidity: day.humidity,
+      uvi: day.uvi
+    };
+  });
 };
 
-// ----------------- Functions to get forecast weather (5 day, 3 hrs) -------------------
+const extractWeatherAlerts = (data: any): WeatherAlert[] => {
+  // If no alerts, data.alerts will be undefined
+  const { alerts = [] } = data;
 
-export const getForecastByCity = async (req: Request, res: Response) => {
-    const city = req.query.city as string;
-    if (!city) {
-        throw new Error("City is required");
-    }
-
-    try {
-        const coords = await getCordinatesByCity(city);
-        const weatherData = await getForecastWeather(coords.lat, coords.lon);
-        res.json(weatherData);
-
-    } catch (error :any ) {
-        const status = error.response ? error.response.status : 500;
-        const message = error.response ? error.response.data.message : "Internal Server Error";
-        
-        res.status(status).json({ error: message });
-    }
+  return alerts.map((alert: any) => ({
+    sender_name: alert.sender_name,
+    event: alert.event,
+    start: alert.start,
+    end: alert.end,
+    description: alert.description,
+    tags: alert.tags || [],
+  }));
 };
 
-export const getForecastByCoordinates = async (req: Request, res: Response) => {
-    const lat = req.query.lat;
-    const lon = req.query.lon;
-    if (!lat || !lon) {
-        throw new Error("Coordinates are required");
-    }
+// ----------------- Main functions -------------------
+export const getWeather = async (req: Request, res: Response) => {
+    const type = req.query.type as string;
 
     try {
-        const weatherData =  await getForecastWeather(Number(lat), Number(lon));
-        res.json(weatherData);
+        let coords: { lat: number; lon: number; city?: string;  country?:string };
+        switch (type) {
+            case "CITY":
+                const city = req.query.city as string;
+                if (!city) throw new Error("City is required");
+                coords = await getCordinatesByCity(city);
+                break;
 
-    } catch (error :any ) {
-        const status = error.response ? error.response.status : 500;
-        const message = error.response ? error.response.data.message : "Internal Server Error";
-        
-        res.status(status).json({ error: message });
-    }
-};
+            case "COORD":
+                const lat = req.query.lat;
+                const lon = req.query.lon;
+                if (!lat || !lon) throw new Error("Coordinates (lat, lon) are required");
+                coords = { lat: Number(lat), lon: Number(lon) };
+                coords = { ...coords, ...(await getCityNameByCoords(coords.lat, coords.lon)) };
+                break;
 
-export const getForecastByZip = async (req: Request, res: Response) => {
-    const zip = req.query.zip as string;
-    if (!zip) {
-        throw new Error("Zip code is required");
-    }
+            case "ZIP":
+                const zip = req.query.zip as string;
+                if (!zip) throw new Error("Zip code is required");
+                coords = await getCordinatesByZip(zip);
+                break;
 
-    try {
-        const coords = await getCordinatesByZip(zip);
-        const weatherData = await getForecastWeather(coords.lat, coords.lon);
-        res.json(weatherData);
+            default:
+                return res.status(400).json({ error: "Invalid retrieval method type. Use CITY, COORD, or ZIP." });
+        }
 
-    } catch (error :any ) {
-        const status = error.response ? error.response.status : 500;
-        const message = error.response ? error.response.data.message : "Internal Server Error";
+        const weatherData = await getWeatherData(coords.lat, coords.lon);
+
+        const result = {
+            currentWeather: extractCurrentWeather(weatherData),
+            dailyForecast: extractDailyForecast(weatherData),
+            weatherAlerts: extractWeatherAlerts(weatherData),
+            city: coords.city || null,
+            country: coords.country || null
+        };
+
+        return res.json(result);
+
+    } catch (error: any) {
+        const status = error.response ? error.response.status : (error.message.includes("required") ? 400 : 500);
+        const message = error.response ? error.response.data.message : error.message;
         
         res.status(status).json({ error: message });
     }

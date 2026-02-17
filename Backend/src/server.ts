@@ -3,7 +3,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import weatherRoutes from "./routes/weather.routes";
-import forecastRoutes from "./routes/forecast.routes";
 import chatroutes from "./routes/chat.routes";
 
 dotenv.config();
@@ -14,7 +13,6 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/weather", weatherRoutes);
-app.use("/api/forecast", forecastRoutes);
 app.use("/api/chat", chatroutes);
 
 

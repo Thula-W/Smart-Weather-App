@@ -1,10 +1,8 @@
 import { Router} from "express";
-import { getWeatherByCity, getWeatherByCoordinates, getWeatherByZip } from "../services/weather.service";
+import { getWeather} from "../services/weather.service";
 
 const router = Router();
 
-router.get("/", getWeatherByCity);
-router.get("/coordinates", getWeatherByCoordinates);
-router.get("/zip",getWeatherByZip);
+router.get("/",getWeather)
 
 export default router;
