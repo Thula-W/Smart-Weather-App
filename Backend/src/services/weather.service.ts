@@ -105,12 +105,14 @@ const extractCurrentWeather = (data: any): CurrentWeather => {
     main: weather.main,
     description: weather.description,
     icon: weather.icon,
+    rain: weather.rain,
+    snow: weather.snow
   };
 };
 
 const extractDailyForecast = (data: any): DailyForecast[] => {
   return data.daily.map((day: any) => {
-    const weather = day.weather;
+    const weather = day.weather[0];
     
     return {
       dt: day.dt,

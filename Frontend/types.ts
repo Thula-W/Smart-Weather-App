@@ -10,6 +10,8 @@ export interface CurrentWeather {
   main: string;
   description: string;
   icon: string;
+  rain?: number;
+  snow?: number;
 }
 
 export interface DailyForecast {
@@ -20,8 +22,9 @@ export interface DailyForecast {
   main: string;
   description: string;
   icon: string;
-  pop: number; // Probability of precipitation
+  pop: number;
   rain: number;
+  snow?:number;
   wind_speed: number;
   humidity: number;
   uvi: number;

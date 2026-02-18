@@ -9,6 +9,8 @@ export interface CurrentWeather {
   main: string;
   description: string;
   icon: string;
+  rain?: number;
+  snow?: number;
 }
 
 export interface DailyForecast {

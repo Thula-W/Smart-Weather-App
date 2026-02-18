@@ -85,9 +85,9 @@ const App: React.FC = () => {
           </div>
         </main>
         
-        <footer className="mt-auto pt-12 pb-6 text-white/60 text-sm">
+        {/* <footer className="mt-auto pt-12 pb-6 text-white/60 text-sm">
           <p>© 2024 SkyCast AI • Smart Weather Intelligence</p>
-        </footer>
+        </footer> */}
       </div>
     </BackgroundWrapper>
   );
