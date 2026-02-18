@@ -14,7 +14,7 @@ const client = new OpenAI({
 const isWeatherRelated = async (input: string): Promise<boolean> => {
   const check = await client.responses.create({
     model: "gpt-4o-mini",
-    input: `Is the following query related to weather, clothing for weather, or weather-impacted activities like sports/gardening etc? 
+    input: `Answer 'yes' if the following query is a greeting (initiating a conversation) or is it related to weather, clothing for weather, or weather-impacted activities like sports/gardening etc? 
     Query: "${input}" 
     Answer only 'yes' or 'no'.`,
     store: false

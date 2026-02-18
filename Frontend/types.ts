@@ -45,6 +45,11 @@ export type WeatherResponse = {
 
 
 //------------------------------------------------------
+export type ChatResponse = {
+  result: string;
+  lastResponseId?: string;
+};
+
 export type WeatherCondition = 
   | 'Clear' 
   | 'Clouds' 

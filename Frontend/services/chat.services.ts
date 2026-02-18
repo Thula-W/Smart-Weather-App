@@ -1,11 +1,7 @@
-import { CurrentWeather } from "../types";
+import { CurrentWeather, ChatResponse } from "../types";
 
 const BASE_URL = "http://localhost:5000/api/chat";
 
-export type ChatResponse = {
-  text: string;
-  responseId?: string;
-};
 
 export const chatService = {
   async sendMessage(
