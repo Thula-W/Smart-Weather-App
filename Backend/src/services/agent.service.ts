@@ -142,7 +142,7 @@ export const chatWithAssistant = async (req: Request, res: Response) => {
 
     if (tag === "historian") {
       return handleHistorianAgent(input, previousResponseId, res);
-    } else {
+    } else if (tag === "default") {
       return handleDefaultAgent(input, previousResponseId, weatherData, res);
     }
   } catch (error: any) {

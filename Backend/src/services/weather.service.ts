@@ -17,7 +17,8 @@ const getWeatherData = async (lat: number, lon: number) => {
                 lat: lat,
                 lon: lon,
                 units: 'metric',
-                appid: process.env.OPENWEATHER_API_KEY
+                appid: process.env.OPENWEATHER_API_KEY,
+                exclude: 'minutely,hourly' 
             }
         }); 
         return weatherResponse.data;  
@@ -91,7 +92,7 @@ const getCityNameByCoords = async (lat: number, lon: number) => {
 
 const extractCurrentWeather = (data: any): CurrentWeather => {
   const { current } = data;
-  const weather = current.weather; 
+  const weather = current.weather[0]; 
 
   return {
     // dt: current.dt,

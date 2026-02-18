@@ -1,0 +1,7 @@
+{
+  "name": "SkyCast AI",
+  "description": "A sophisticated smart weather application with dynamic visual themes and a Gemini-powered weather assistant. Supports searching by city, zip code, or coordinates.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
