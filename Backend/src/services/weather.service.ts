@@ -1,11 +1,13 @@
 import axios from "axios";
 import {  Request, Response } from "express";
-import { CurrentWeather, DailyForecast, WeatherAlert} from "../types/weather.types";
+import { CurrentWeather, DailyForecast, WeatherAlert, HistoryWeather} from "../types/weather.types";
+import { get } from "node:http";
 
 const END_POINT = "https://api.openweathermap.org/data/3.0/onecall";
 const GEO_ZIP = "http://api.openweathermap.org/geo/1.0/zip";
 const GEO_CITY = 'http://api.openweathermap.org/geo/1.0/direct';
 const REVERSE_GEO = 'http://api.openweathermap.org/geo/1.0/reverse';
+const HISTORICAL_WEATHER = 'https://api.openweathermap.org/data/3.0/onecall/day_summary';
 
 // ----------------- Helper functions -----------------------
 const getWeatherData = async (lat: number, lon: number) => {
@@ -190,3 +192,60 @@ export const getWeather = async (req: Request, res: Response) => {
         res.status(status).json({ error: message });
     }
 };
+
+
+export const getHistoryWeatherTool = async (location: string, date: string): Promise<HistoryWeather> => {
+    const inputDate = new Date(date);
+    const minDate = new Date("1979-01-02");
+
+    if (isNaN(inputDate.getTime())) {
+        throw new Error("Invalid date format. Please use YYYY-MM-DD.");
+    }
+
+    if (inputDate < minDate) {
+        throw new Error("Oh dear, I wasn’t around before January 2, 1979, so I don’t have memories of the weather from earlier days!");
+    }
+
+    try {
+        const { lat, lon , city } = await getCordinatesByCity(location);
+
+        const response = await axios.get(HISTORICAL_WEATHER, {
+        params: {
+            lat,
+            lon,
+            date,
+            units: 'metric',
+            appid: process.env.OPENWEATHER_API_KEY
+        }
+        });
+
+        const { 
+        date: resDate, 
+        temperature, 
+        precipitation, 
+        humidity, 
+        wind, 
+        cloud_cover 
+        } = response.data;
+
+        return {
+        city: city,
+        date: resDate,
+        temp_max: temperature.max,
+        temp_min: temperature.min,
+        temp_morning: temperature.morning,
+        temp_evening: temperature.evening,
+        temp_afternoon: temperature.afternoon,
+        temp_night: temperature.night,
+        precipitation: precipitation.total,
+        humidity: humidity.afternoon,
+        wind_max_speed: wind.max.speed,
+        cloud_cover: cloud_cover.afternoon
+        };
+
+    } catch (error: any) {
+       const message = error.response?.data?.message || error.message;
+       throw new Error(`Failed to retrieve history for ${location}: ${message}`);
+    }
+};
+

@@ -1,17 +1,3 @@
-export interface WeatherData {
-  city: string;
-  temperature: number;
-  humidity: number;
-  description: string;
-  windSpeed: number;
-}
-
-export interface WeatherCondition {
-  main: string;
-  description: string;
-  icon: string;
-}
-
 export interface CurrentWeather {
 //   dt: number;
   temp: number;
@@ -47,4 +33,19 @@ export interface WeatherAlert {
   end: number;
   description: string;
   tags: string[];
+}
+
+export interface HistoryWeather {
+  city: string;
+  date: string;
+  temp_max: number;
+  temp_min: number;
+  temp_morning: number;
+  temp_evening: number;
+  temp_afternoon: number;
+  temp_night: number;
+  precipitation: number;
+  humidity: number;
+  wind_max_speed: number;
+  cloud_cover: number;
 }

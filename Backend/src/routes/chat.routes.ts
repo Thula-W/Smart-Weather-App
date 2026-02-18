@@ -1,9 +1,9 @@
 import { Router} from "express";
-import { handleWeatherChat } from "../services/llm.service";
+import { chatWithAssistant } from "../services/agent.service";
 
 const router = Router();
 
-router.post("/", handleWeatherChat);
+router.post("/", chatWithAssistant);
 
 
 export default router;
