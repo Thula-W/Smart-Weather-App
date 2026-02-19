@@ -14,6 +14,38 @@ const formatDate = (dt: number) =>
     day: "numeric"
   });
 
+  const getWeatherIcon = (main?: string) => {
+  if (!main) return "/icons/clear.svg";
+
+  const condition = main.toLowerCase();
+
+  switch (condition) {
+    case "clear":
+      return "/icons/clear.svg";
+
+    case "clouds":
+      return "/icons/clouds.svg";
+
+    case "rain":
+    case "drizzle":
+      return "/icons/rain.svg";
+
+    case "snow":
+      return "/icons/snow.svg";
+
+    case "thunderstorm":
+      return "/icons/thunderstorm.svg";
+
+    case "mist":
+    case "fog":
+    case "haze":
+      return "/icons/mist.svg";
+
+    default:
+      return "/icons/clear.svg";
+  }
+};
+
 const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => {
   if (loading && !weather) {
     return (
@@ -57,7 +89,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
           </div>
           <div className="flex flex-col items-center">
           <img
-            src={`https://openweathermap.org/img/wn/${currentWeather.icon}@4x.png`}
+            src={getWeatherIcon(currentWeather.main)}
             alt={currentWeather.main}
             className="w-40 h-40"
           />
@@ -158,7 +190,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
               </span>
                <div className="flex flex-col items-center leading-none">
                 <img
-                  src={`https://openweathermap.org/img/wn/${day.icon}.png`}
+                  src={getWeatherIcon(day.main)}
                   alt={day.main}
                   className="w-10 h-10"
                 />
