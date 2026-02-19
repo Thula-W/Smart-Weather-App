@@ -1,6 +1,7 @@
 import React from "react";
 import { WeatherResponse, DailyForecast } from "../types";
 import HourlyTempChart from './hourlyTempChart';
+import WeatherAlerts from "./weatherAlerts";
 
 interface WeatherDisplayProps {
   weather: WeatherResponse | null;
@@ -60,7 +61,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
 
   if (!weather) return null;
 
-  const { currentWeather, dailyForecast, city, country, hourlyWeather } = weather;
+  const { currentWeather, dailyForecast, city, country, hourlyWeather, weatherAlerts } = weather;
   const hourly24 = hourlyWeather.slice(0, 24) || []; 
 
   return (
@@ -109,6 +110,10 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
         </div>
       </div>
 
+      {weatherAlerts && weatherAlerts.length > 0 && (
+        <WeatherAlerts alerts={weatherAlerts} />
+      )}
+      
       <h3 className="text-lg font-bold text-white/60 uppercase px-2">
         Next 24 Hour Temperature
       </h3>
@@ -118,7 +123,6 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
       </div>
     )}
 
-      
       {/* Forecast */}
       <h3 className="text-lg font-bold text-white/60 uppercase px-2">
         Next Week Forecast
