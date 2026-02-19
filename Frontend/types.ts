@@ -42,11 +42,15 @@ export type WeatherResponse = {
   currentWeather: CurrentWeather;
   dailyForecast: DailyForecast[];
   weatherAlerts: WeatherAlert[];
+  hourlyWeather: HourlyWeather[];
   city: string | null;
   country: string | null;
 };
 
-
+export interface HourlyWeather {
+  dt: number;
+  temp: number;
+}
 //------------------------------------------------------
 export type ChatResponse = {
   result: string;

@@ -51,3 +51,8 @@ export interface HistoryWeather {
   wind_max_speed: number;
   cloud_cover: number;
 }
+
+export interface HourlyWeather{
+  dt: number;
+  temp:number;
+}

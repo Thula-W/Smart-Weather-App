@@ -1,5 +1,6 @@
 import React from "react";
 import { WeatherResponse, DailyForecast } from "../types";
+import HourlyTempChart from './hourlyTempChart';
 
 interface WeatherDisplayProps {
   weather: WeatherResponse | null;
@@ -27,7 +28,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
 
   if (!weather) return null;
 
-  const { currentWeather, dailyForecast, city, country } = weather;
+  const { currentWeather, dailyForecast, city, country, hourlyWeather } = weather;
+  const hourly24 = hourlyWeather.slice(0, 24) || []; 
 
   return (
     <div className="space-y-6">
@@ -75,11 +77,74 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
         </div>
       </div>
 
+      <h3 className="text-lg font-bold text-white/60 uppercase px-2">
+        Next 24 Hour Temperature
+      </h3>
+      {hourly24.length > 0 && (
+      <div className="mt-6 glass rounded-3xl p-4 border border-white/5">
+        <HourlyTempChart data={hourly24} />
+      </div>
+    )}
 
+      
       {/* Forecast */}
       <h3 className="text-lg font-bold text-white/60 uppercase px-2">
         Next Week Forecast
       </h3>
+
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {dailyForecast.slice(1, 7).map((day: DailyForecast, idx) => (
+          <div
+            key={idx}
+            className="glass rounded-3xl p-5 border border-white/5"
+          >
+
+        <div className="flex justify-between items-start mb-2">
+          <span className="font-bold text-white">
+            {formatDate(day.dt)}
+          </span>
+        <div className="flex flex-col items-center leading-none">
+          <img
+            src={`https://openweathermap.org/img/wn/${day.icon}.png`}
+            alt={day.main}
+            className="w-10 h-10"
+          />
+          <p className="capitalize text-sky-300 text-xs -mt-1 h-4">
+            {day.main || ""}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex justify-center items-center gap-4 mb-3 text-center">
+        <span className="text-3xl font-black leading-none">
+          {Math.round(day.temp_max)}°C
+        </span>
+        <span className="text-sm text-white/60">
+          {Math.round(day.temp_min)}°C
+        </span>
+      </div>
+
+
+          <div className="grid grid-cols-3 gap-1 text-xs text-center border-t border-white/5 pt-3">
+            {day.snow ? (
+              <MiniStat
+                label="Snow"
+                value={`${day.snow.toFixed(1)}`}
+                unit="mm/h"
+              />
+            ) : (
+              <MiniStat
+                label="Rain"
+                value={`${day.rain?.toFixed(1) || 0}`}
+                unit="mm/h"
+              />
+            )}
+            <MiniStat label="POP" value={`${day.pop}%`} />
+            <MiniStat label="UV" value={day.uvi.toString()} />
+          </div>
+        </div>
+        ))}
+      </div> */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {dailyForecast.slice(1, 7).map((day: DailyForecast, idx) => (
@@ -87,15 +152,20 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
             key={idx}
             className="glass rounded-3xl p-5 border border-white/5"
           >
-            <div className="flex justify-between mb-4">
+            <div className="flex justify-between ">
               <span className="font-bold text-white">
                 {formatDate(day.dt)}
               </span>
-              <img
-                src={`https://openweathermap.org/img/wn/${day.icon}.png`}
-                alt={day.main}
-                className="w-10 h-10"
-              />
+               <div className="flex flex-col items-center leading-none">
+                <img
+                  src={`https://openweathermap.org/img/wn/${day.icon}.png`}
+                  alt={day.main}
+                  className="w-10 h-10"
+                />
+                <p className="capitalize text-sky-300 text-xs -mt-1 h-4">
+                  {day.main || ""}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-5 mb-4">

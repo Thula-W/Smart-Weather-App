@@ -1,6 +1,6 @@
 import axios from "axios";
 import {  Request, Response } from "express";
-import { CurrentWeather, DailyForecast, WeatherAlert, HistoryWeather} from "../types/weather.types";
+import { CurrentWeather, DailyForecast, WeatherAlert, HistoryWeather, HourlyWeather} from "../types/weather.types";
 import { get } from "node:http";
 
 const END_POINT = "https://api.openweathermap.org/data/3.0/onecall";
@@ -18,7 +18,7 @@ const getWeatherData = async (lat: number, lon: number) => {
                 lon: lon,
                 units: 'metric',
                 appid: process.env.OPENWEATHER_API_KEY,
-                exclude: 'minutely,hourly' 
+                exclude: 'minutely' 
             }
         }); 
         return weatherResponse.data;  
@@ -105,9 +105,18 @@ const extractCurrentWeather = (data: any): CurrentWeather => {
     main: weather.main,
     description: weather.description,
     icon: weather.icon,
-    rain: weather.rain,
-    snow: weather.snow
+    rain: current.rain?.["1h"],
+    snow: current.snow?.["1h"]
   };
+};
+
+const extractHourlyWeather = (data: any): HourlyWeather[] => {
+  return data.hourly.map((hour: any) => {
+    return {
+        dt: hour.dt,
+        temp: hour.temp,
+    };
+    })
 };
 
 const extractDailyForecast = (data: any): DailyForecast[] => {
@@ -182,6 +191,7 @@ export const getWeather = async (req: Request, res: Response) => {
             currentWeather: extractCurrentWeather(weatherData),
             dailyForecast: extractDailyForecast(weatherData),
             weatherAlerts: extractWeatherAlerts(weatherData),
+            hourlyWeather: extractHourlyWeather(weatherData),
             city: coords.city || null,
             country: coords.country || null
         };

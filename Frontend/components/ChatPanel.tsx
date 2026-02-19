@@ -112,11 +112,11 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ weatherContext }) => {
 
   return (
     <>
-      <div ref={panelRef} className="glass rounded-3xl flex flex-col overflow-hidden border border-white/10">
+      <div ref={panelRef} className="h-full max-h-[70vh] flex flex-col bg-white/10 rounded-2xl border border-white/20">
 
         {/* Header */}
         <div className="p-5 border-b border-white/10 flex justify-between">
-          <h3 className="font-bold text-white">
+          <h3 className="font-bold text-lg text-white px-3 py-1">
             {flavor === 'Historian' ? 'Sunny 🧙🏻‍♀️' : 'Breeze 🌬️'}
           </h3>
 
