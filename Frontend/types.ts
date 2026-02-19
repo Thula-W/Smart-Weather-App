@@ -50,6 +50,8 @@ export type WeatherResponse = {
 export interface HourlyWeather {
   dt: number;
   temp: number;
+  rain? :number;
+  snow? : number
 }
 //------------------------------------------------------
 export type ChatResponse = {

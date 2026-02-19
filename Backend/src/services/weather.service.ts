@@ -115,6 +115,8 @@ const extractHourlyWeather = (data: any): HourlyWeather[] => {
     return {
         dt: hour.dt,
         temp: hour.temp,
+        rain: hour.rain?.['1h'],
+        snow: hour.snow?.['1h']
     };
     })
 };

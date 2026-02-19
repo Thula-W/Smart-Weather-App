@@ -1,4 +1,4 @@
-import { CurrentWeather, ChatResponse } from "../types";
+import { CurrentWeather, ChatResponse, DailyForecast } from "../types";
 
 const BASE_URL = "http://localhost:5000/api/chat";
 
@@ -7,6 +7,7 @@ export const chatService = {
   async sendMessage(
     input: string,
     weatherData: CurrentWeather | null,
+    futureWeatherData: DailyForecast[],
     previousResponseId?: string,
     flavor: "Default" | "Historian" = "Default"
   ): Promise<ChatResponse> {
@@ -21,7 +22,8 @@ export const chatService = {
       body: JSON.stringify({
         input,
         previousResponseId,
-        weatherData
+        weatherData,
+        futureWeatherData
       })
     });
 

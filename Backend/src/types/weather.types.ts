@@ -55,4 +55,6 @@ export interface HistoryWeather {
 export interface HourlyWeather{
   dt: number;
   temp:number;
+  rain?:number;
+  snow?:number;
 }

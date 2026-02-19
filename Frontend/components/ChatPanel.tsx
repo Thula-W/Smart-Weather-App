@@ -69,6 +69,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ weatherContext }) => {
       const { result, lastResponseId } = await chatService.sendMessage(
         input,
         flavor === 'Default' ? weatherContext.currentWeather : null,
+        flavor === 'Default' ? weatherContext.dailyForecast : null,
         previousResponseId,
         flavor
       );

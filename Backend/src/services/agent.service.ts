@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { Request, Response } from "express";
 import { getHistoryWeatherTool } from "./weather.service";
 import { DEFAULT_AGENT_PROMPT, HISTORIAN_AGENT_PROMPT } from "../utils/agent.prompts";
+import { CurrentWeather, DailyForecast } from "../types/weather.types";
 
 dotenv.config();
 
@@ -96,15 +97,16 @@ const handleHistorianAgent = async (
 const handleDefaultAgent = async (
   input: string,
   previousResponseId: string | undefined,
-  currentWeatherData: any,
+  currentWeatherData: CurrentWeather,
+  futureWeatherData : DailyForecast[],
   res: Response
 ) => {
   try {
     const contextPrompt = previousResponseId
       ? input
-      : `You are friendly weather assistant.Help user with his questions. Here is the Current Weather Data: ${JSON.stringify(
-          currentWeatherData
-        )}\nUser Question: ${input}`;
+      : `You are friendly weather assistant.Help user with his questions. Here is the Current Weather Data: ${JSON.stringify(currentWeatherData)}\n
+      Here is the future daily forecast data : ${JSON.stringify(futureWeatherData)} You may use these to answer relevant questions.
+        User Question: ${input}`;
 
     const response = await client.responses.create({
       model: "gpt-4o-mini",
@@ -126,7 +128,7 @@ const handleDefaultAgent = async (
 // ---------------------------------------------------------------------
 export const chatWithAssistant = async (req: Request, res: Response) => {
   try {
-    const { input, previousResponseId, weatherData } = req.body;
+    const { input, previousResponseId, currentWeatherData, futureWeatherData } = req.body;
     const tag = req.query.tag as string;
 
     if (!input) {
@@ -143,7 +145,7 @@ export const chatWithAssistant = async (req: Request, res: Response) => {
     if (tag === "historian") {
       return handleHistorianAgent(input, previousResponseId, res);
     } else if (tag === "default") {
-      return handleDefaultAgent(input, previousResponseId, weatherData, res);
+      return handleDefaultAgent(input, previousResponseId, currentWeatherData, futureWeatherData, res);
     }
   } catch (error: any) {
     return res.status(500).json({ error: error.message });
