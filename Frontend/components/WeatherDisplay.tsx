@@ -53,17 +53,21 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
               Feels like {Math.round(currentWeather.feels_like)}°C
             </p>
           </div>
-
+          <div className="flex flex-col items-center">
           <img
             src={`https://openweathermap.org/img/wn/${currentWeather.icon}@4x.png`}
             alt={currentWeather.main}
             className="w-40 h-40"
           />
+          <p className="capitalize text-sky-300">
+              {currentWeather.main ? currentWeather.main : ''}
+          </p>
+          </div>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-white/10 pt-6">
-          <Stat label="Wind" value={currentWeather.wind_speed.toString()} unit="km/h" />
+          <Stat label="Wind" value={currentWeather.wind_speed.toString()} unit="m/s" />
           <Stat label="Humidity" value={currentWeather.humidity.toString()} unit="%" />
           {currentWeather.snow ? <Stat label="Snow" value={`${currentWeather.snow}`} unit="mm/h" />
           : <Stat label="Rain" value={`${currentWeather.rain || 0}`} unit=" mm/h" />}
@@ -104,8 +108,8 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
             </div>
 
             <div className="grid grid-cols-3 gap-1 text-xs text-center border-t border-white/5 pt-3">
-              {day.snow ? <MiniStat label="Snow" value={`${day.snow.toFixed(1)} mm/h`} />
-              : <MiniStat label="Rain" value={`${day.rain?.toFixed(1) || 0} mm/h`} />}
+              {day.snow ? <MiniStat label="Snow" value={`${day.snow.toFixed(1)}`} unit = 'mm/h' />
+              : <MiniStat label="Rain" value={`${day.rain?.toFixed(1) || 0}`} unit = 'mm/h' />}
               <MiniStat label="POP" value={`${day.pop}%`} />
               <MiniStat label="UV" value={day.uvi.toString()} />
             </div>
@@ -126,18 +130,21 @@ const Stat = ({
   unit?: string;
 }) => (
   <div className="bg-white/5 p-4 rounded-2xl text-center">
-    <span className="text-[10px] uppercase text-white/30">{label}</span>
+    <span className="text-[10px] uppercase text-white/70">{label}</span>
     <div className="text-2xl font-black text-white">
       {value}
-      <span className="text-xs text-white/30 ml-1">{unit}</span>
+      <span className="text-xs text-white/50 ml-1">{unit}</span>
     </div>
   </div>
 );
 
-const MiniStat = ({ label, value }: { label: string; value: string }) => (
+const MiniStat = ({ label, value, unit ='' }: { label: string; value: string; unit?: string }) => (
   <div>
-    <span className="block text-[9px] uppercase text-white/30">{label}</span>
-    <span className="font-bold text-white">{value}</span>
+    <span className="block text-[9px] uppercase text-white/70">{label}</span>
+    <div className="font-bold text-white">
+      {value}
+      <span className="text-xs text-white/50 ml-1">{unit}</span>
+    </div>
   </div>
 );
 

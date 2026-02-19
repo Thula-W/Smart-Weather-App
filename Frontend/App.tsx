@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { WeatherResponse, SearchMode } from './types';
 import { weatherService } from './services/weather.services';
 import SearchSection from './components/SearchSection';
@@ -11,6 +11,8 @@ const App: React.FC = () => {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const chatRef = useRef<HTMLDivElement | null>(null);
+  const [showButton, setShowButton] = useState(true);
 
   const fetchWeather = async (params: { mode: SearchMode; city?: string; zip?: string; country?: string; lat?: number; lon?: number }) => {
     setLoading(true);
@@ -39,7 +41,7 @@ const App: React.FC = () => {
     }
   };
 
-  // Initial load with geolocation
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -47,49 +49,85 @@ const App: React.FC = () => {
           fetchWeather({ mode: 'COORD', lat: pos.coords.latitude, lon: pos.coords.longitude });
         },
         () => {
-          // Fallback if permission denied
-          fetchWeather({ mode: 'CITY', city: 'London' });
+          fetchWeather({ mode: 'CITY', city: 'Colombo' });
         }
       );
     } else {
-      fetchWeather({ mode: 'CITY', city: 'London' });
+      fetchWeather({ mode: 'CITY', city: 'Colombo' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowButton(!entry.isIntersecting);
+      },
+      {
+        threshold: 0.3, 
+      }
+    );
+
+    if (chatRef.current) {
+      observer.observe(chatRef.current);
+    }
+
+    return () => {
+      if (chatRef.current) {
+        observer.unobserve(chatRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <BackgroundWrapper condition={weather?.currentWeather?.main || 'Clear'}>
-      <div className="min-h-screen w-full flex flex-col items-center p-4 md:p-8">
-        <header className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 2.5-8.242 8 8 0 1 0-15 4.242 4.5 4.5 0 0 0 2.5 8.242" /><path d="M12 13v8" /><path d="m8 17 4 4 4-4" /></svg>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight">SkyCast <span className="text-sky-300">AI</span></h1>
+    <BackgroundWrapper condition={weather?.currentWeather?.main || "Clear"}>
+      <div className="min-h-screen w-full flex flex-col items-center px-4 md:px-8">
+
+        <header className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-12 mt-6 gap-4 text-center md:text-left">
+          <div className="flex items-center gap-3 justify-center md:justify-start">
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              SkyCast <span className="text-sky-300">AI</span>
+            </h1>
           </div>
           <SearchSection onSearch={fetchWeather} loading={loading} />
         </header>
 
-        <main className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8 animate-fade-in">
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/50 p-4 rounded-xl text-center">
-                {error}
-              </div>
-            )}
+        <main className="w-full max-w-4xl flex flex-col items-center gap-16">
+          <div className="w-full">
             <WeatherDisplay weather={weather} loading={loading} />
           </div>
-          
-          <div className="lg:col-span-1 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <ChatPanel weatherContext={weather} />
+
+          <div
+            ref={chatRef}
+            id="chat-section"
+            className="w-full pb-20"
+          >
+            <div className="w-full max-h-[70vh] overflow-hidden rounded-2xl backdrop-blur-lg">
+              <ChatPanel weatherContext={weather} />
+            </div>
           </div>
+
         </main>
-        
-        {/* <footer className="mt-auto pt-12 pb-6 text-white/60 text-sm">
-          <p>© 2024 SkyCast AI • Smart Weather Intelligence</p>
-        </footer> */}
       </div>
+
+      {showButton && (
+        <button
+          onClick={() => {
+            chatRef.current?.scrollIntoView({ behavior: "smooth" });
+          }}
+          className="fixed bottom-6 right-6 z-50 
+                     bg-white/20 backdrop-blur-lg 
+                     border border-white/30 
+                     text-white px-6 py-3 
+                     rounded-full shadow-2xl 
+                     transition-all duration-300 
+                     hover:bg-white/30 hover:scale-105"
+        >
+          💬 Chat
+        </button>
+      )}
     </BackgroundWrapper>
+
   );
 };
 
