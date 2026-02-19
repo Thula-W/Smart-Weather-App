@@ -1,6 +1,8 @@
+import dotenv from 'dotenv'
 import {WeatherResponse } from '../types';
 
-const BASE_URL = "http://localhost:5000/api/weather";
+dotenv.config()
+const BASE_URL = process.env.WEATHER_ENDPOINT;
 
 export const weatherService = {
   async getByCity(city: string): Promise<WeatherResponse> {

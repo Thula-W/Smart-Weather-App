@@ -1,7 +1,8 @@
+import dotenv from 'dotenv'
 import { CurrentWeather, ChatResponse, DailyForecast } from "../types";
 
-const BASE_URL = "http://localhost:5000/api/chat";
-
+dotenv.config()
+const BASE_URL = process.env.CHAT_ENDPOINT;
 
 export const chatService = {
   async sendMessage(
