@@ -139,7 +139,7 @@ export const chatWithAssistant = async (req: Request, res: Response) => {
     if (!weatherCheck) {
       return res
         .status(400)
-        .json({ error: "Input rejected. Please ask weather-related questions." });
+        .json({ error: "Please ask weather-related questions." });
     }
 
     if (tag === "historian") {
