@@ -11,18 +11,71 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+const weatherKeywords = [
+  "weather",
+  "temperature",
+  "rain",
+  "humidity",
+  "wind",
+  "forecast",
+  "climate",
+  "feels like",
+  "sunny",
+  "cloudy",
+  "colder",
+  "hot",
+  "storm"
+];
+
+function ruleBasedCheck(input: string): boolean {
+  const lower = input.toLowerCase();
+  return weatherKeywords.some(word => lower.includes(word));
+}
+
+
 // guardrail to check if the input is weather related before processing with the agent
 const isWeatherRelated = async (input: string): Promise<boolean> => {
-  const check = await client.responses.create({
+  if (ruleBasedCheck(input)) return true;
+  const response = await client.responses.create({
     model: "gpt-4o-mini",
-    input: `Answer 'yes' if the following query is a greeting (initiating a conversation) or is it related to weather, clothing for weather, or weather-impacted activities like sports/gardening etc? 
-    Query: "${input}" 
-    Answer only 'yes' or 'no'.`,
-    store: false
-  });
+    input: [
+      {
+        role: "system",
+        content: `
+          You are a strict classifier.
 
-  return check.output_text.toLowerCase().includes("yes");
+          Return JSON only:
+          { "weather_related": true } 
+          or 
+          { "weather_related": false }
+
+          Weather-related includes:
+          - Current weather
+          - Historical weather (any past date)
+          - Future forecasts
+          - Temperature queries
+          - Rain, wind, humidity, climate
+          - Clothing advice based on weather
+          - Weather-impacted activities
+
+          Greeting messages like "hi", "hello" are also true.
+
+          Everything else is false.
+          `
+        },
+        {
+          role: "user",
+          content: input
+        }
+      ],
+      store: false
+    });
+
+  const text = response.output_text;
+  const parsed = JSON.parse(text);
+  return parsed.weather_related ;
 };
+
 
 //---------- This agent is responsible for historcial weather quearies----------------
 const handleHistorianAgent = async (
