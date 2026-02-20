@@ -71,7 +71,9 @@ const App: React.FC = () => {
         setShowButton(!entry.isIntersecting);
       },
       {
-        threshold: 0.3, 
+         root: null, 
+         rootMargin: "0px",
+         threshold: 0.3,
       }
     );
 
@@ -84,7 +86,7 @@ const App: React.FC = () => {
         observer.unobserve(chatRef.current);
       }
     };
-  }, []);
+  }, [ [chatRef, weather]]);
 
   return (
     <BackgroundWrapper condition={weather?.currentWeather?.main || "Clear"}>

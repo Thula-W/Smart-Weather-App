@@ -1,8 +1,7 @@
-import dotenv from 'dotenv'
 import {WeatherResponse } from '../types';
 
-dotenv.config()
-const BASE_URL = process.env.WEATHER_ENDPOINT;
+const BASE_URL = import.meta.env.VITE_WEATHER_ENDPOINT;
+
 
 export const weatherService = {
   async getByCity(city: string): Promise<WeatherResponse> {

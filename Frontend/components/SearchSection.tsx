@@ -1,9 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
 import { SearchMode } from '../types';
 
 interface SearchSectionProps {
-  onSearch: (params: { mode: SearchMode; city?: string; zip?: string; country?: string; lat?: number; lon?: number }) => void;
+  onSearch: (params: {
+    mode: SearchMode;
+    city?: string;
+    zip?: string;
+    country?: string;
+    lat?: number;
+    lon?: number;
+  }) => void;
   loading: boolean;
 }
 
@@ -13,54 +19,108 @@ const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, loading }) => {
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
   const [countryCode, setCountryCode] = useState('LK');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setError('');
+    setQuery('');
+    setLat('');
+    setLon('');
+  }, [mode]);
+
+
+  const handleCityChange = (value: string) => {
+    // Block if first character is a number
+    if (value.length === 1 && /^\d$/.test(value)) {
+      return;
+    }
+    const validPattern = /^[A-Za-z0-9\s-]*$/;
+
+    if (validPattern.test(value)) {
+      setQuery(value);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (mode === 'CITY') {
-      if (!query.trim()) return;
-      onSearch({ mode: 'CITY', city: query });
-    } else if (mode === 'ZIP') {
-      if (!query.trim()) return;
-      onSearch({ mode: 'ZIP', zip: query, country: countryCode });
-    } else if (mode === 'COORD') {
+      const trimmed = query.trim();
+
+      if (!trimmed) {
+        setError('City name is required');
+        return;
+      }
+
+      setError('');
+      onSearch({ mode: 'CITY', city: trimmed });
+    }
+
+    else if (mode === 'ZIP') {
+      const trimmed = query.trim();
+
+      if (!trimmed) {
+        setError('Zip code is required');
+        return;
+      }
+
+      setError('');
+      onSearch({ mode: 'ZIP', zip: trimmed, country: countryCode.trim() });
+    }
+
+    else if (mode === 'COORD') {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lon);
-      if (!isNaN(latitude) && !isNaN(longitude)) {
-        onSearch({ mode: 'COORD', lat: latitude, lon: longitude });
+
+      if (isNaN(latitude) || isNaN(longitude)) {
+        setError('Enter valid latitude and longitude');
+        return;
       }
+
+      setError('');
+      onSearch({ mode: 'COORD', lat: latitude, lon: longitude });
     }
   };
 
   return (
     <div className="flex flex-col gap-2 w-full max-w-md">
+
+      {/* Mode Selector */}
       <div className="flex gap-2 p-1 bg-white/10 backdrop-blur-md rounded-lg self-center md:self-end">
         {(['CITY', 'ZIP', 'COORD'] as SearchMode[]).map((m) => (
           <button
             key={m}
+            type="button"
             onClick={() => setMode(m)}
             className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
-              mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-white/70 hover:text-white'
+              mode === m
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-white/70 hover:text-white'
             }`}
           >
-            {m.toUpperCase()}
+            {m}
           </button>
         ))}
       </div>
+
       <form onSubmit={handleSubmit} className="relative flex gap-2">
+
         {mode !== 'COORD' ? (
-          <div className="relative flex-1 group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white/50 group-focus-within:text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
+          <div className="relative flex-1">
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={mode === 'CITY' ? "Enter city name..." : "Enter zip code..."}
-              className="w-full pl-10 pr-4 py-3 bg-white/10 hover:bg-white/20 focus:bg-white/20 outline-none border border-white/20 rounded-xl backdrop-blur-md transition-all placeholder:text-white/40"
+              onChange={(e) =>
+                mode === 'CITY'
+                  ? handleCityChange(e.target.value)
+                  : setQuery(e.target.value)
+              }
+              placeholder={
+                mode === 'CITY'
+                  ? 'Enter city name...'
+                  : 'Enter zip code...'
+              }
+              className="w-full px-4 py-3 bg-white/10 hover:bg-white/20 focus:bg-white/20 outline-none border border-white/20 rounded-xl backdrop-blur-md transition-all placeholder:text-white/40"
             />
           </div>
         ) : (
@@ -83,16 +143,17 @@ const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, loading }) => {
             />
           </div>
         )}
-        
+
         {mode === 'ZIP' && (
           <input
             type="text"
             value={countryCode}
-            onChange={(e) => setCountryCode(e.target.value)}
+            onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
             placeholder="LK"
             className="w-16 px-2 py-3 bg-white/10 border border-white/20 rounded-xl backdrop-blur-md text-center outline-none focus:bg-white/20 transition-all"
           />
         )}
+
         <button
           type="submit"
           disabled={loading}
@@ -101,12 +162,15 @@ const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, loading }) => {
           {loading ? (
             <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            'Search'
           )}
         </button>
       </form>
+
+      {error && (
+        <p className="text-red-400 text-sm mt-1">{error}</p>
+      )}
+
     </div>
   );
 };
