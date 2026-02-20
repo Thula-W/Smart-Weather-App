@@ -69,7 +69,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
       {/* Current Weather */}
       <div className="glass rounded-3xl p-6 md:p-8">
         <div className="flex justify-between items-center mb-6">
-          <div>
+          <div className="md:ml-10">
             <h2 className="text-2xl font-bold text-white">
               {city}{country && `, ${country}`}
             </h2>
@@ -88,7 +88,7 @@ const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading }) => 
               Feels like {Math.round(currentWeather.feels_like)}°C
             </p>
           </div>
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center md:mr-10">
           <img
             src={getWeatherIcon(currentWeather.main)}
             alt={currentWeather.main}

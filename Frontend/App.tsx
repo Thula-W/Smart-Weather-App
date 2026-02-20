@@ -220,36 +220,42 @@ const App: React.FC = () => {
   }, [weather]);
 
   return (
-    <BackgroundWrapper condition={weather?.currentWeather?.main || "Clear"}>
+    <BackgroundWrapper condition={weather?.currentWeather?.main || "Cloud"}>
       <div className="min-h-screen w-full flex flex-col items-center px-4 md:px-8">
 
         {!isInitialized ? (
           <div className="w-full h-screen flex flex-col items-center justify-center gap-6">
-            <h1 className="text-3xl font-bold tracking-tight text-white">
-              SkyCast <span className="text-sky-300">AI</span>
-            </h1>
-
-            <div className="relative w-16 h-16">
-              <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-sky-400 border-r-sky-300 animate-spin"></div>
-            </div>
-
-            <p className="text-white/80 text-lg">Using Geo Location...</p>
-          </div>
-        ) : (
-          <>
-            <header className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-12 mt-6 gap-4">
+            <div className="flex items-center gap-3 justify-center">
               <h1 className="text-3xl font-bold tracking-tight text-white">
                 SkyCast <span className="text-sky-300">AI</span>
               </h1>
+            </div>
 
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-sky-400 border-r-sky-300 animate-spin"></div>
+              </div>
+              <p className="text-white/80 text-lg">Using Geo Location...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <header className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-12 mt-6 gap-4 text-center md:text-left">
+              <div className="flex items-center gap-3 justify-center md:justify-start">
+                <h1 className="text-3xl font-bold tracking-tight text-white">
+                  SkyCast <span className="text-sky-300">AI</span>
+                </h1>
+              </div>
               <SearchSection onSearch={fetchWeather} loading={loading} />
             </header>
 
             <main className="w-full max-w-4xl flex flex-col items-center gap-16">
-              <WeatherDisplay weather={weather} loading={loading} />
+              <div className="w-full">
+                <WeatherDisplay weather={weather} loading={loading} />
+              </div>
 
-              <div ref={chatRef} className="w-full pb-20">
+              <div ref={chatRef} id="chat-section" className="w-full pb-20">
                 <div className="w-full max-h-[70vh] overflow-hidden rounded-2xl backdrop-blur-lg">
                   <ChatPanel weatherContext={weather} />
                 </div>
@@ -258,9 +264,7 @@ const App: React.FC = () => {
 
             {showButton && (
               <button
-                onClick={() =>
-                  chatRef.current?.scrollIntoView({ behavior: "smooth" })
-                }
+                onClick={() => chatRef.current?.scrollIntoView({ behavior: "smooth" })}
                 className="fixed bottom-6 right-6 z-50 
                            bg-white/20 backdrop-blur-lg 
                            border border-white/30 
@@ -274,6 +278,7 @@ const App: React.FC = () => {
             )}
           </>
         )}
+
       </div>
     </BackgroundWrapper>
   );

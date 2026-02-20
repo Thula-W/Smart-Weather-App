@@ -27,7 +27,7 @@ const BackgroundWrapper: React.FC<BackgroundWrapperProps> = ({
       case "Haze":
         return "/backgrounds/mist.jpg";
       default:
-        return "/backgrounds/clear.jpg";
+        return "/backgrounds/cloud.jpg";
     }
   };
 
