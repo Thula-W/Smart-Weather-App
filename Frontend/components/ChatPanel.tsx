@@ -21,14 +21,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ weatherContext }) => {
     Default: [
       {
         role: 'assistant',
-        content: "Hi, I'm Breeze, your personal weather assistant. How can I help you today?",
+        content: "Hey there! I’m Breeze, your personal weather assistant. I can help you with current and upcoming weather. If you’re curious about past weather, my friend Sunny has got you covered!",
         timestamp: new Date()
       }
     ],
     Historian: [
       {
         role: 'assistant',
-        content: "Hi I’m Sunny, born on a crisp January 2, 1979 morning, and I’ve been faithfully remembering the weather of every single day since that very first breath.",
+        content: "Hi, I’m Sunny! I was born on a crisp morning of January 2, 1979, and ever since, I’ve been faithfully recording the weather for every single day. You can ask me about the weather in any city on any date after my birthday!",
         timestamp: new Date()
       }
     ]
@@ -70,8 +70,9 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ weatherContext }) => {
         input,
         flavor === 'Default' ? weatherContext.currentWeather : null,
         flavor === 'Default' ? weatherContext.dailyForecast : null,
+        weatherContext.city,
         previousResponseId,
-        flavor
+        flavor,
       );
 
       const assistantMessage: ChatMessage = {

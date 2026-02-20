@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import { Request, Response } from "express";
-import { getHistoryWeatherTool } from "./weather.service";
+import { getHistoryWeatherTool, getWeatherTool } from "./weather.service";
 import { DEFAULT_AGENT_PROMPT, HISTORIAN_AGENT_PROMPT } from "../utils/agent.prompts";
 import { CurrentWeather, DailyForecast } from "../types/weather.types";
 
@@ -98,23 +98,67 @@ const handleDefaultAgent = async (
   input: string,
   previousResponseId: string | undefined,
   currentWeatherData: CurrentWeather,
-  futureWeatherData : DailyForecast[],
+  futureWeatherData: DailyForecast[],
+  city: string, 
   res: Response
 ) => {
   try {
-    const contextPrompt = previousResponseId
-      ? input
-      : `You are friendly weather assistant.Help user with his questions. Here is the Current Weather Data: ${JSON.stringify(currentWeatherData)}\n
-      Here is the future daily forecast data : ${JSON.stringify(futureWeatherData)} You may use these to answer relevant questions.
-        User Question: ${input}`;
+    const tools = [
+      {
+        type: "function" as const,
+        name: "getWeatherTool",
+        description: "Fetch current and daily forecast weather for a city.",
+        parameters: {
+          type: "object",
+          properties: {
+            city: { type: "string" }
+          },
+          required: ["city"],
+          additionalProperties: false
+        },
+        strict: true
+      }
+    ];
+
+    const contextPrompt = `You are a friendly weather assistant. 
+    Here is the Current Weather Data for ${city}: ${JSON.stringify(currentWeatherData)}
+    Here is the future daily forecast data: ${JSON.stringify(futureWeatherData)}
+    Use these to answer relevant questions. 
+    If the user asks about another location, you may call the 'getWeatherTool' tool to get updated weather for that city. Do not provide fake weather data.
+    User Question: ${input}`;
 
     const response = await client.responses.create({
       model: "gpt-4o-mini",
       ...(previousResponseId && { previous_response_id: previousResponseId }),
       input: contextPrompt,
-      store: true,
-      instructions: DEFAULT_AGENT_PROMPT
+      tools,
+      store: true
     });
+
+    const toolCall = response.output.find(item => item.type === "function_call");
+
+    if (toolCall && toolCall.type === "function_call") {
+      const { city: requestedCity } = JSON.parse(toolCall.arguments);
+      const newWeatherData = await getWeatherTool("CITY", { city: requestedCity });
+
+      const finalResponse = await client.responses.create({
+        model: "gpt-4o-mini",
+        previous_response_id: response.id,
+        input: [
+          {
+            type: "function_call_output",
+            call_id: toolCall.call_id,
+            output: JSON.stringify(newWeatherData)
+          }
+        ],
+        instructions: DEFAULT_AGENT_PROMPT
+      });
+
+      return res.json({
+        result: finalResponse.output_text,
+        lastResponseId: finalResponse.id
+      });
+    }
 
     return res.json({
       result: response.output_text,
@@ -125,10 +169,12 @@ const handleDefaultAgent = async (
   }
 };
 
+
+
 // ---------------------------------------------------------------------
 export const chatWithAssistant = async (req: Request, res: Response) => {
   try {
-    const { input, previousResponseId, currentWeatherData, futureWeatherData } = req.body;
+    const { input, previousResponseId, weatherData, futureWeatherData,city } = req.body;
     const tag = req.query.tag as string;
 
     if (!input) {
@@ -145,7 +191,7 @@ export const chatWithAssistant = async (req: Request, res: Response) => {
     if (tag === "historian") {
       return handleHistorianAgent(input, previousResponseId, res);
     } else if (tag === "default") {
-      return handleDefaultAgent(input, previousResponseId, currentWeatherData, futureWeatherData, res);
+      return handleDefaultAgent(input, previousResponseId, weatherData, futureWeatherData,city, res);
     }
   } catch (error: any) {
     return res.status(500).json({ error: error.message });

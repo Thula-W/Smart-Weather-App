@@ -58,3 +58,12 @@ export interface HourlyWeather{
   rain?:number;
   snow?:number;
 }
+
+export type WeatherResponse = {
+  currentWeather: CurrentWeather;
+  dailyForecast: DailyForecast[];
+  weatherAlerts: WeatherAlert[];
+  hourlyWeather: HourlyWeather[];
+  city: string | null;
+  country: string | null;
+};

@@ -1,6 +1,6 @@
 import axios from "axios";
 import {  Request, Response } from "express";
-import { CurrentWeather, DailyForecast, WeatherAlert, HistoryWeather, HourlyWeather} from "../types/weather.types";
+import { CurrentWeather, DailyForecast, WeatherAlert, HistoryWeather, HourlyWeather, WeatherResponse} from "../types/weather.types";
 import { get } from "node:http";
 
 const END_POINT = "https://api.openweathermap.org/data/3.0/onecall";
@@ -264,3 +264,50 @@ export const getHistoryWeatherTool = async (location: string, date: string): Pro
     }
 };
 
+export const getWeatherTool = async (
+  type: string,
+  params: { city?: string; lat?: number; lon?: number; zip?: string }
+): Promise<WeatherResponse> => {
+  try {
+    let coords: { lat: number; lon: number; city?: string; country?: string };
+
+    switch (type) {
+      case "CITY":
+        if (!params.city) throw new Error("City is required");
+        coords = await getCordinatesByCity(params.city);
+        break;
+
+      case "COORD":
+        if (params.lat === undefined || params.lon === undefined)
+          throw new Error("Coordinates (lat, lon) are required");
+        coords = { lat: params.lat, lon: params.lon };
+        coords = { ...coords, ...(await getCityNameByCoords(coords.lat, coords.lon)) };
+        break;
+
+      case "ZIP":
+        if (!params.zip) throw new Error("Zip code is required");
+        coords = await getCordinatesByZip(params.zip);
+        break;
+
+      default:
+        throw new Error("Invalid retrieval method type. Use CITY, COORD, or ZIP.");
+    }
+
+    const weatherData = await getWeatherData(coords.lat, coords.lon);
+
+    const result: WeatherResponse = {
+      currentWeather: extractCurrentWeather(weatherData),
+      dailyForecast: extractDailyForecast(weatherData),
+      weatherAlerts: extractWeatherAlerts(weatherData),
+      hourlyWeather: extractHourlyWeather(weatherData),
+      city: coords.city || null,
+      country: coords.country || null
+    };
+
+    return result;
+
+  } catch (error: any) {
+    const message = error.response?.data?.message || error.message;
+    throw new Error(`Failed to retrieve weather: ${message}`);
+  }
+};

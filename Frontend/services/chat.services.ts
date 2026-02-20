@@ -7,6 +7,7 @@ export const chatService = {
     input: string,
     weatherData: CurrentWeather | null,
     futureWeatherData: DailyForecast[],
+    city:string,
     previousResponseId?: string,
     flavor: "Default" | "Historian" = "Default"
   ): Promise<ChatResponse> {
@@ -22,7 +23,8 @@ export const chatService = {
         input,
         previousResponseId,
         weatherData,
-        futureWeatherData
+        futureWeatherData,
+        city : city
       })
     });
 
