@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import weatherRoutes from "./routes/weather.routes";
 import chatroutes from "./routes/chat.routes";
 
+import { chatLimiter, weatherLimiter } from "./utils/rate.limiters";
+
 dotenv.config();
 
 const app = express();
@@ -12,13 +14,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/weather", weatherRoutes);
-app.use("/api/chat", chatroutes);
+app.use("/api/weather",weatherLimiter, weatherRoutes);
+app.use("/api/chat",chatLimiter,chatroutes);
 
-
-// app.get("/", (_, res) => {
-//   res.json({ message: "Smart Weather API running" });
-// });
 
 const PORT = process.env.PORT || 5000;
 
